@@ -48,7 +48,7 @@ func main() {
 
 		fmt.Println(data)
 
-		file, err := os.Create("Cidade.txt")
+		file, err := os.Create("05 - Busca CEP/cidade.txt")
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Erro ao criar o arquivo: %v \n", err)

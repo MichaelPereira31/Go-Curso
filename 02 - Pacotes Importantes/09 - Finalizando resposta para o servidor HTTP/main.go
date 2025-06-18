@@ -23,7 +23,7 @@ type ViaCep struct {
 }
 
 func main() {
-	http.HandleFunc("/busca-cep", BuscaCEPHandler)
+	http.HandleFunc("/", BuscaCEPHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -39,9 +39,18 @@ func BuscaCEPHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cep, error := BuscaCep(cepParam)
+
+	if error != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Busca CEP"))
+
+	// Faz a conversão do objeto ViaCep para JSON e retorna o resultado
+	json.NewEncoder(w).Encode(cep)
 }
 
 func BuscaCep(cep string) (*ViaCep, error) {

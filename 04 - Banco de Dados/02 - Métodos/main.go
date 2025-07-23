@@ -49,6 +49,22 @@ func main() {
 	}
 	fmt.Printf("Product: %v, possui o preço de %v\n", product.Name, product.Price)
 
+	products, err := selectAllProducts(db)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Lista de produtos:")
+	for _, p := range products {
+		fmt.Printf("Product: %v, possui o preço de %v\n", p.Name, p.Price)
+	}
+	fmt.Println("Removendo o produto...", product.Name)
+	err = deleteProduct(db, product.ID)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Produto removido com sucesso!, Nome:", product.Name)
+
 }
 
 func insertProduct(db *sql.DB, product *Product) error {
@@ -67,18 +83,18 @@ func insertProduct(db *sql.DB, product *Product) error {
 }
 
 func updateProduct(db *sql.DB, product *Product) error {
-stmt, err := db.Prepare("UPDATE products SET name = ?, price = ? WHERE id = ?")
-if err != nil {
-	return err
-}
-defer stmt.Close()
+	stmt, err := db.Prepare("UPDATE products SET name = ?, price = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
 
-_, err = stmt.Exec(product.Name, product.Price, product.ID)
-if err != nil {
-	return err
-}
+	_, err = stmt.Exec(product.Name, product.Price, product.ID)
+	if err != nil {
+		return err
+	}
 
-return nil
+	return nil
 
 }
 
@@ -95,4 +111,38 @@ func selectOneProduct(db *sql.DB, id string) (*Product, error) {
 	}
 	return &product, nil
 
+}
+
+func selectAllProducts(db *sql.DB) ([]Product, error) {
+	rows, err := db.Query("SELECT * FROM products")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var products []Product
+	for rows.Next() {
+		var product Product
+		err := rows.Scan(&product.ID, &product.Name, &product.Price)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, product)
+	}
+	return products, nil
+}
+
+func deleteProduct(db *sql.DB, id string) error {
+	stmt, err := db.Prepare("DELETE FROM products WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

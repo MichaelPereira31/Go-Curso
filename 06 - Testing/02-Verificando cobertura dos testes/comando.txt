@@ -1,0 +1,5 @@
+// Esse comando vai gerar um arquivo coverage.out no diretório atual e mostrar o percentual de cobertura dos testes
+go test --coverprofile=coverage.out
+
+// Esse comando vai gerar um arquivo coverage.html no diretório atual e mostrar oq o teste não cobrir
+go tool cover -html=coverage.out

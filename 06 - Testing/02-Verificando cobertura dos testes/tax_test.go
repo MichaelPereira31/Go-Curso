@@ -21,6 +21,7 @@ func TestCalculteBatch(t *testing.T) {
 		{amount: 500.0, expected: 5.0},
 		{amount: 1000.0, expected: 10.0},
 		{amount: 1500.0, expected: 10.0},
+		{amount: 0.0, expected: 0.0},
 	}
 
 	for _, item := range table {

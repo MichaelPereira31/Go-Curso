@@ -1,0 +1,2 @@
+// rodar o benchmark
+go test -bench=.

@@ -1,4 +1,4 @@
-package internal
+package entity
 
 import (
 	"github.com/go-curso-michaelpereira31/pkg/entity"
@@ -6,10 +6,10 @@ import (
 )
 
 type User struct {
-	ID       entity.ID `json:"id"`
-	Name     string    `json:"name"`
-	Email    string    `json:"email"`
-	Password string    `json:"-"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"-"`
 }
 
 func NewUser(name, email, password string) (*User, error) {
@@ -18,7 +18,7 @@ func NewUser(name, email, password string) (*User, error) {
 		return nil, err
 	}
 	return &User{
-		ID:       entity.NewID(),
+		ID:       entity.NewID().String(),
 		Name:     name,
 		Email:    email,
 		Password: string(hash),

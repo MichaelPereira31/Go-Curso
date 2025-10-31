@@ -1,8 +1,7 @@
-package internal
+package entity
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/go-curso-michaelpereira31/pkg/entity"
@@ -37,11 +36,11 @@ func NewProduct(name string, price float64) (*Product, error) {
 	return product, nil
 }
 func (p *Product) Validate() error {
-	if p.ID == (entity.ID{}) {
+	if p.ID.String() == "" {
 		return ErrIDIsRequired
 	}
-	idStr := fmt.Sprintf("%s", p.ID)
-	if _, err := entity.ParseID(idStr); err != nil {
+
+	if _, err := entity.ParseID(p.ID.String()); err != nil {
 		return ErrInvalidID
 	}
 

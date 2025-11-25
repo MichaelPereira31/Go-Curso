@@ -1,8 +1,18 @@
 package database
 
-import internal "github.com/go-curso-michaelpereira31/internal/entity"
+import (
+	"github.com/go-curso-michaelpereira31/internal/entity"
+)
 
 type UserInterface interface {
-	Create(user *internal.User) error
-	FindByEmail(email string) (*internal.User, error)
+	Create(user *entity.User) error
+	FindByEmail(email string) (*entity.User, error)
+}
+
+type ProductInterface interface {
+	Create(product *entity.Product) error
+	FindAll(page, limit int,sort string) ([]entity.Product, error)
+	FindByID(id string) (*entity.Product, error)
+	Update(product *entity.Product) error
+	Delete(id string) error
 }

@@ -9,5 +9,25 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:8080/products/078565a1357e47f3a0a4fd664d41b411 HTTP/1.1
+GET http://localhost:8080/products/1188b257-ba4d-4e68-b4e1-da9981f2e901 HTTP/1.1
+Content-Type: application/json
+
+###
+
+GET http://localhost:8080/products?limit=3&page=1&sort=asc HTTP/1.1
+Content-Type: application/json
+
+###
+
+PUT http://localhost:8080/products/1188b257-ba4d-4e68-b4e1-da9981f2e901 HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Product A",
+  "price": 110.0
+}
+
+###
+
+DELETE http://localhost:8080/products/1188b257-ba4d-4e68-b4e1-da9981f2e901 HTTP/1.1
 Content-Type: application/json

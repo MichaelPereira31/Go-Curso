@@ -16,7 +16,7 @@ var (
 )
 
 type Product struct {
-	ID        entity.ID `json:"id" gorm:"type:string"`
+	ID        string    `json:"id" gorm:"type:char(32);primaryKey"`
 	Name      string    `json:"name"`
 	Price     float64   `json:"price"`
 	CreatedAt time.Time `json:"created_at"`
@@ -24,23 +24,25 @@ type Product struct {
 
 func NewProduct(name string, price float64) (*Product, error) {
 	product := &Product{
-		ID:        entity.NewID(),
+		ID:        entity.NewID().String(),
 		Name:      name,
 		Price:     price,
 		CreatedAt: time.Now(),
 	}
-	err := product.Validate()
-	if err != nil {
+
+	if err := product.Validate(); err != nil {
 		return nil, err
 	}
+
 	return product, nil
 }
+
 func (p *Product) Validate() error {
-	if p.ID.String() == "" {
+	if p.ID == "" {
 		return ErrIDIsRequired
 	}
 
-	if _, err := entity.ParseID(p.ID.String()); err != nil {
+	if _, err := entity.ParseID(p.ID); err != nil {
 		return ErrInvalidID
 	}
 
@@ -57,5 +59,4 @@ func (p *Product) Validate() error {
 	}
 
 	return nil
-
 }

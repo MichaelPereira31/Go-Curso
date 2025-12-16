@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-curso-michaelpereira31/internal/dto"
@@ -18,6 +19,31 @@ func NewUserHandler(db database.UserInterface) *UserHandler {
 	return &UserHandler{
 		UserDB: db,
 	}
+}
+
+func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request){
+	pageStr := chi.URLParam(r, "page")
+	limitStr := chi.URLParam(r, "limit")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		page = 0
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit= 10
+	}
+
+	sort := chi.URLParam(r, "sort")
+	
+	users, err := h.UserDB.FindAll(page, limit, sort)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(users)
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -53,4 +79,19 @@ func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(user)
+}
+
+func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err := h.UserDB.Delete(id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 }

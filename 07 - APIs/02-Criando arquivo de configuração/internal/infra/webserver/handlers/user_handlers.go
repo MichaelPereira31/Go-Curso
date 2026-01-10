@@ -4,24 +4,30 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/jwtauth"
 	"github.com/go-curso-michaelpereira31/internal/dto"
 	"github.com/go-curso-michaelpereira31/internal/entity"
 	"github.com/go-curso-michaelpereira31/internal/infra/database"
 )
 
 type UserHandler struct {
-	UserDB database.UserInterface
+	UserDB        database.UserInterface
+	Jwt           *jwtauth.JWTAuth
+	JwtExperiesIn int
 }
 
-func NewUserHandler(db database.UserInterface) *UserHandler {
+func NewUserHandler(db database.UserInterface, Jwt *jwtauth.JWTAuth, JwtExperiesIn int) *UserHandler {
 	return &UserHandler{
 		UserDB: db,
+		Jwt: Jwt,
+		JwtExperiesIn: JwtExperiesIn,
 	}
 }
 
-func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request){
+func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	pageStr := chi.URLParam(r, "page")
 	limitStr := chi.URLParam(r, "limit")
 
@@ -31,11 +37,11 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request){
 	}
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
-		limit= 10
+		limit = 10
 	}
 
 	sort := chi.URLParam(r, "sort")
-	
+
 	users, err := h.UserDB.FindAll(page, limit, sort)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -94,4 +100,37 @@ func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
+	var user dto.GetJWTInput
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	u, err := h.UserDB.FindByEmail(user.Email)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+	if !u.ValidatePassword(user.Password) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	_, tokenStr, _ := h.Jwt.Encode(map[string]interface{}{
+		"sub": u.ID,
+		"name": u.Name,
+		"exp": time.Now().
+			Add(time.Second * time.Duration(h.JwtExperiesIn)).
+			Unix(),
+	})
+
+	accessToken := struct {
+		AccessToken string `json:"access_token"`
+	}{
+		AccessToken: tokenStr,
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(accessToken)
 }

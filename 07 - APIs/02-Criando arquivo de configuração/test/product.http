@@ -16,6 +16,7 @@ Content-Type: application/json
 
 GET http://localhost:8080/products?limit=3&page=1&sort=asc HTTP/1.1
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjgxNzg0OTIsIm5hbWUiOiJNaWNoYWVsIFBlcmVpcmEiLCJzdWIiOiIxYmJjMGI5Zi1hNjQzLTRjMzktOTU4Ny0yMjVjNGY3MWFkNzkifQ.wgsZaj5ifA_Ucmy7pfbC7Qtaj1hg-cqQ6eVhwvFLhbU
 
 ###
 

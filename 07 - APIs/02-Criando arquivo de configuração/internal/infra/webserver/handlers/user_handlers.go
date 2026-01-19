@@ -15,15 +15,11 @@ import (
 
 type UserHandler struct {
 	UserDB        database.UserInterface
-	Jwt           *jwtauth.JWTAuth
-	JwtExperiesIn int
 }
 
-func NewUserHandler(db database.UserInterface, Jwt *jwtauth.JWTAuth, JwtExperiesIn int) *UserHandler {
+func NewUserHandler(db database.UserInterface) *UserHandler {
 	return &UserHandler{
 		UserDB: db,
-		Jwt: Jwt,
-		JwtExperiesIn: JwtExperiesIn,
 	}
 }
 
@@ -104,6 +100,8 @@ func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 	var user dto.GetJWTInput
+	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
+	JwtExpiresIn := r.Context().Value("JwtExpirationIn").(int)
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -117,11 +115,11 @@ func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	_, tokenStr, _ := h.Jwt.Encode(map[string]interface{}{
+	_, tokenStr, _ := jwt.Encode(map[string]interface{}{
 		"sub": u.ID,
 		"name": u.Name,
 		"exp": time.Now().
-			Add(time.Second * time.Duration(h.JwtExperiesIn)).
+			Add(time.Second * time.Duration(JwtExpiresIn)).
 			Unix(),
 	})
 

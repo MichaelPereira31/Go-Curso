@@ -1,10 +1,12 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/jwtauth"
 	"github.com/go-curso-michaelpereira31/configs"
 	"github.com/go-curso-michaelpereira31/internal/entity"
 	"github.com/go-curso-michaelpereira31/internal/infra/database"
@@ -25,14 +27,22 @@ func main() {
 	}
 	db.AutoMigrate(&entity.Product{}, &entity.User{})
 	productHandler := handlers.NewProductHandler(database.NewProductDB(db))
-	userHandler := handlers.NewUserHandler(database.NewUserDB(db), configs.TokenAuth, configs.JWTExpirationIn)
+	userHandler := handlers.NewUserHandler(database.NewUserDB(db))
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Post("/products", productHandler.CreateProduct)
-	r.Get("/products/{id}", productHandler.GetProduct)
-	r.Get("/products", productHandler.GetProducts)
-	r.Put("/products/{id}", productHandler.UpdateProduct)
-	r.Delete("/products/{id}", productHandler.DeleteProduct)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.WithValue("jwt", configs.TokenAuth))
+	r.Use(middleware.WithValue("JwtExpirationIn", configs.JWTExpirationIn))
+	r.Use(LogRequest)
+	r.Route("/products", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(configs.TokenAuth))
+		r.Use(jwtauth.Authenticator)
+		r.Get("/{id}", productHandler.GetProduct)
+		r.Get("/", productHandler.GetProducts)
+		r.Post("/", productHandler.CreateProduct)
+		r.Put("/{id}", productHandler.UpdateProduct)
+		r.Delete("/{id}", productHandler.DeleteProduct)
+	})
 
 	r.Post("/user", userHandler.CreateUser)
 	r.Get("/user/{email}", userHandler.GetUserByEmail)
@@ -41,4 +51,11 @@ func main() {
 	r.Post("/user/generate_token", userHandler.GetJWT)
 
 	http.ListenAndServe(":8080", r)
+}
+
+func LogRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
 }

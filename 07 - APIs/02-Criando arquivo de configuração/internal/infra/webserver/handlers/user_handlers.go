@@ -116,13 +116,26 @@ func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetJWT godoc
+// @Sumary Get JWT token
+// Description Get JWT token with email and password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body dto.GetJWTInput true "user credentials"
+// @Success 200 {object} dto.GetJWTOutput
+// @Failure 400 {object} Error
+// @Failure 401 {object} Error
+// @router /user/generate_token [post]
 func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 	var user dto.GetJWTInput
 	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
 	JwtExpiresIn := r.Context().Value("JwtExpirationIn").(int)
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
+		err := Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(err)
 		return
 	}
 	u, err := h.UserDB.FindByEmail(user.Email)
@@ -141,9 +154,7 @@ func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 			Unix(),
 	})
 
-	accessToken := struct {
-		AccessToken string `json:"access_token"`
-	}{
+	accessToken := dto.GetJWTOutput{
 		AccessToken: tokenStr,
 	}
 	w.WriteHeader(http.StatusOK)

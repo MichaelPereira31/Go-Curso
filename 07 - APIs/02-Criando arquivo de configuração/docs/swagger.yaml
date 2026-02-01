@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  dto.CreateProductInput:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   dto.CreateUserInput:
     properties:
       email:
@@ -21,6 +28,17 @@ definitions:
       access_token:
         type: string
     type: object
+  entity.Product:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   handlers.Error:
     properties:
       message:
@@ -35,6 +53,178 @@ info:
   title: Go Expert API
   version: "1.0"
 paths:
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of products
+      parameters:
+      - description: Page number
+        in: path
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: path
+        name: limit
+        type: integer
+      - description: Sort order
+        in: path
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Product'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get a list of products
+      tags:
+      - products
+    post:
+      consumes:
+      - application/json
+      description: Create a new product with the input payload
+      parameters:
+      - description: Product to create
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateProductInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new product
+      tags:
+      - products
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a product by ID
+      tags:
+      - products
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get a product by ID
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: Update a product's details by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateProductInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update a product by ID
+      tags:
+      - products
   /user:
     post:
       consumes:

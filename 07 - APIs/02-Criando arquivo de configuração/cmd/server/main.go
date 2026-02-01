@@ -13,8 +13,23 @@ import (
 	"github.com/go-curso-michaelpereira31/internal/infra/webserver/handlers"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	_ "github.com/go-curso-michaelpereira31/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title Go Expert API
+// @version 1.0
+// @description Product API with authentication
+
+// @contact.name Michael
+// @contact.url https://www.linkedin.com/in/michaelpereira31/
+
+// @host localhost:8080
+// @BasePath /
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	configs, err := configs.LoadConfig(".")
 	if err != nil {
@@ -49,6 +64,8 @@ func main() {
 	r.Get("/users", userHandler.GetUsers)
 	r.Delete("/user/{id}", userHandler.DeleteUserById)
 	r.Post("/user/generate_token", userHandler.GetJWT)
+
+	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8080/docs/doc.json")))
 
 	http.ListenAndServe(":8080", r)
 }

@@ -13,8 +13,12 @@ import (
 	"github.com/go-curso-michaelpereira31/internal/infra/database"
 )
 
+type Error struct {
+	Message string `json:"message"`
+}
+
 type UserHandler struct {
-	UserDB        database.UserInterface
+	UserDB database.UserInterface
 }
 
 func NewUserHandler(db database.UserInterface) *UserHandler {
@@ -48,6 +52,16 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 
+// Create user godoc
+// @Sumary Create a new user
+// Description Create a new user with the input payload
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateUserInput true "user request"
+// @Success 201
+// @Failure 500 {object} Error
+// @router /user [post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user dto.CreateUserInput
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -58,11 +72,15 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	u, err := entity.NewUser(user.Name, user.Email, user.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		error := Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(error)
 		return
 	}
 	err = h.UserDB.Create(u)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		error := Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(error)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -116,7 +134,7 @@ func (h *UserHandler) GetJWT(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, tokenStr, _ := jwt.Encode(map[string]interface{}{
-		"sub": u.ID,
+		"sub":  u.ID,
 		"name": u.Name,
 		"exp": time.Now().
 			Add(time.Second * time.Duration(JwtExpiresIn)).

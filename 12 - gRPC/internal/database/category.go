@@ -14,9 +14,20 @@ func NewCategory(db *sql.DB) *Category {
 		db: db,
 	}
 }
- func (c *Category) Create() error {
-	_, err := c.db.Exec("INSERT INTO categories (id, name, description) VALUES ($1, $2, $3)", c.ID, c.Name, c.Description)
-	return err
+func (c *Category) Create(name, description string) (*Category, error) {
+	category := &Category{
+		db:          c.db,
+		Name:        name,
+		Description: description,
+	}
+
+	err := c.db.QueryRow(
+		"INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING id, name, description",
+		category.Name,
+		category.Description,
+	).Scan(&category.ID, &category.Name, &category.Description)
+
+	return category, err
 }
 
 func (c *Category) GetByID(id string) error {
